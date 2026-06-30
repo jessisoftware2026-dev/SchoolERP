@@ -1,15 +1,10 @@
 cp .env.example .env
-docker compose up -d --build
-docker mcp client connect vscode
-
+npm install
+npm run dev:web
 
 Web app     →    http://localhost:3000
 API         →    http://localhost:4000/health
-API docs    →    http://localhost:4000/docs (Swagger)
 AI service  →    http://localhost:8000/health
-AI docs     →    http://localhost:8000/docs
-postgresql  →    http://localhost:5555/
-http://demo.192.168.1.110.nip.io:3000/
 
 New Change 30-06-2026
 
@@ -17,22 +12,8 @@ Role            Login URL                   Email               Password
 -----------------------------------------------------------------------------
 SUPER_ADMIN     http://localhost:3000       super@jessi.local   super123
 School ADMIN    http://demo.localhost:3000  admin@jessi.local   admin123
-http://demo.192.168.1.110.nip.io:3000
-
-
-docker compose build api
-docker compose build web
-Restart the postgres container (or docker compose up -d) for the fix to take effect.
-
 
 API         →    http://localhost:4000
-
-docker compose build --no-cache web
-
-docker compose exec -e 
-DATABASE_URL="postgresql://jessi:jessi_secret@postgres:5432/jessi_erp?schema=public" 
-api npx prisma studio
-
 Want me to take the next pass — wire up the student application form + detail UI to this new model, or build the promotion / fees endpoints first?
 
 

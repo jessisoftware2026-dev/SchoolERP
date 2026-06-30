@@ -25,9 +25,9 @@ jessi-erp/
 │   ├── web/      # Next.js 14 dashboard (modern SaaS UI) + Students module
 │   ├── api/      # NestJS core ERP backend (Prisma + Postgres) + Students CRUD
 │   └── ai/       # FastAPI AI microservice (chat, risk prediction, pgvector)
-├── docker-compose.yml
 ├── .env.example
-└── package.json  # npm workspaces (web + api)
+├── package.json  # npm workspaces (web + api)
+└── vercel.json   # root Vercel deployment config
 ```
 
 ## Architecture
@@ -167,12 +167,11 @@ The schema added `schoolId` as a **required** column on `Student`, so an existin
 non-empty dev DB can't migrate in place. In development, reset and reseed:
 
 ```bash
-docker compose exec api npx prisma migrate reset --force   # drops + recreates
-docker compose exec api npm run prisma:seed
-docker compose restart api
+npm run prisma:migrate --workspace apps/api -- --name reset
+npm run prisma:seed --workspace apps/api
 ```
 
-(For a fresh DB, `prisma migrate dev --name multi-tenant` + seed is enough.)
+(For a fresh DB, `npm run prisma:migrate --workspace apps/api -- --name multi-tenant` + seed is enough.)
 
 ### Adding tenancy to new modules
 
