@@ -9,7 +9,7 @@ A future-ready, AI-first monorepo implementing the recommended blueprint:
 | AI Service   | **Python · FastAPI**                        |
 | Database     | **PostgreSQL** + `pgvector`                 |
 | Cache / RT   | **Redis**                                   |
-| DevOps       | Docker · Docker Compose · Nginx-ready       |
+| DevOps       | Vercel-ready · Docker optional             |
 
 > **Design principle:** the Core ERP backend and the Python AI service are kept
 > separate. The ERP stays fast and stable; the AI service scales and evolves
@@ -52,43 +52,50 @@ jessi-erp/
                   (5432)
 ```
 
-## Quick start (Docker — everything)
+## Quick start (Vercel-first)
 
 ```bash
 cp .env.example .env
-docker compose up -d --build
+npm install
+npm run dev:web
 ```
 
 Then open:
 
 - Web app   → http://localhost:3000
-- API       → http://localhost:4000/health
-- API docs  → http://localhost:4000/docs (Swagger)
-- AI service → http://localhost:8000/health
-- AI docs   → http://localhost:8000/docs
+- API       → http://localhost:4000/health (run separately)
+- AI service → http://localhost:8000/health (run separately)
 
-## Local development (without Docker for the apps)
+## Local development
 
-Start just the infra (Postgres + Redis) with Docker, run the apps on your host:
+Run the web app locally and keep the API/AI services separate if needed:
 
 ```bash
-docker compose up -d postgres redis
-
 # install JS deps (root workspaces)
 npm install
 
-# database
-npm run prisma:migrate --workspace apps/api
+# run the web app
+npm run dev:web
 
-# run the three services in separate terminals
-npm run dev:api          # NestJS  → http://localhost:4000
-npm run dev:web          # Next.js → http://localhost:3000
+# run the API in a second terminal
+npm run dev:api
 
+# run the AI service in a third terminal
 cd apps/ai
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
+
+## Vercel deployment
+
+Deploy the web app from the repository root or from the apps/web directory:
+
+```bash
+vercel
+```
+
+The web app is configured for Vercel through [apps/web/vercel.json](apps/web/vercel.json).
 
 ## Reference module: Students / Admissions
 
