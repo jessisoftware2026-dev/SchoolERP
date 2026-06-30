@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import {
   PrismaClient,
   Role,
@@ -8,6 +11,8 @@ import {
   GuardianRelation,
   AddressType,
   DocumentType,
+  PaymentMode,
+  ConcessionType,
 } from "@prisma/client";
 import * as bcrypt from "bcryptjs";
 
@@ -22,7 +27,6 @@ type PermissionMap = {
 
 const ALL_MODULES = Object.values(Module);
 
-// Default permissions by role (SUPER_ADMIN & ADMIN bypass at runtime, seeded for completeness)
 const DEFAULT_PERMISSIONS: Record<Role, Partial<Record<Module, PermissionMap>>> = {
   SUPER_ADMIN: Object.fromEntries(
     ALL_MODULES.map((m) => [m, { canView: true, canCreate: true, canEdit: true, canDelete: true }])
@@ -73,8 +77,9 @@ const DEFAULT_PERMISSIONS: Record<Role, Partial<Record<Module, PermissionMap>>> 
   },
 };
 
-// Sample students for the demo tenant. Each carries the full admission payload:
-// identity + guardians + addresses + documents + the first year's enrollment.
+const ACADEMIC_YEAR = "2026-27";
+const FEE_HEADS = ["Tuition", "Hostel", "Transport", "Exam", "Extra"];
+
 const SAMPLE_STUDENTS = [
   {
     admissionNo: "ADM-2026-27-0001",
@@ -111,6 +116,16 @@ const SAMPLE_STUDENTS = [
       { type: DocumentType.TRANSFER_CERTIFICATE, number: "TC-2025-0001", verified: true },
       { type: DocumentType.AADHAR, number: "1234 5678 9001" },
     ],
+    hostel: { blockName: "Block A", roomNo: "A-101", bedNo: "1" },
+    transport: null,
+    tuitionAmount: 45000,
+    concession: null,
+    payment: { amount: 45000, mode: PaymentMode.ONLINE, receiptNo: "REC-2026-0001", reference: "TXN-00001", paidAt: new Date("2026-06-01") },
+    activities: [
+      { name: "Cricket", category: "Sports", role: "Captain", achievement: "District Level Winner" },
+      { name: "Debate Club", category: "Academic", role: "Member", achievement: null },
+    ],
+    health: { heightCm: 158, weightKg: 52, vision: "6/6", allergies: "None", conditions: null },
   },
   {
     admissionNo: "ADM-2026-27-0002",
@@ -144,9 +159,19 @@ const SAMPLE_STUDENTS = [
       { type: DocumentType.BIRTH_CERTIFICATE, number: "BC-2011-2290", verified: true },
       { type: DocumentType.PASSPORT_PHOTO },
     ],
+    hostel: null,
+    transport: { routeName: "Route 3 – Ahmedabad East", stopName: "Civil Hospital Stop", vehicleNo: "GJ-01-AB-1234", pickupTime: "07:15" },
+    tuitionAmount: 45000,
+    concession: { type: ConcessionType.SCHOLARSHIP, percent: 20, reason: "Merit scholarship – top 10% of Grade 9", approvedBy: "admin@jessi.local" },
+    payment: { amount: 36000, mode: PaymentMode.BANK_TRANSFER, receiptNo: "REC-2026-0002", reference: "NEFT-00002", paidAt: new Date("2026-06-03") },
+    activities: [
+      { name: "Classical Dance", category: "Arts", role: "Participant", achievement: "State Level Finalist" },
+    ],
+    health: { heightCm: 162, weightKg: 55, vision: "6/9 – corrected with glasses", allergies: "Dust allergy", conditions: null },
   },
   {
     admissionNo: "ADM-2026-27-0003",
+    applicationNo: null,
     firstName: "Kabir",
     lastName: "Singh",
     gender: Gender.MALE,
@@ -170,29 +195,23 @@ const SAMPLE_STUDENTS = [
     documents: [
       { type: DocumentType.AADHAR, number: "1234 5678 9003" },
     ],
+    hostel: null,
+    transport: null,
+    tuitionAmount: 45000,
+    concession: null,
+    payment: null,
+    activities: [],
+    health: null,
   },
 ];
 
-const ACADEMIC_YEAR = "2026-27";
-
-// Fee heads the demo school charges. FeeItems reference these per enrollment.
-const FEE_HEADS = ["Tuition", "Hostel", "Transport", "Exam", "Extra"];
-
 async function main() {
-  // ── Platform super-admin (no tenant) ──────────────────────────────────
+  // ── Platform super-admin (schoolId = null, can't use upsert on nullable unique) ──
   const superHash = await bcrypt.hash("super123", 10);
-  const existingSuper = await prisma.user.findFirst({
-    where: { email: "super@jessi.local", schoolId: null },
-  });
+  const existingSuper = await prisma.user.findFirst({ where: { email: "super@jessi.local", schoolId: null } });
   if (!existingSuper) {
     await prisma.user.create({
-      data: {
-        email: "super@jessi.local",
-        name: "Platform Owner",
-        role: Role.SUPER_ADMIN,
-        passwordHash: superHash,
-        schoolId: null,
-      },
+      data: { email: "super@jessi.local", name: "Platform Owner", role: Role.SUPER_ADMIN, passwordHash: superHash, schoolId: null },
     });
   }
 
@@ -202,7 +221,7 @@ async function main() {
     update: {},
     create: {
       name: "Demo Public School",
-      slug: "demo", // → demo.localhost in dev, demo.jessierp.com in prod
+      slug: "demo",
       status: "ACTIVE",
       plan: "PRO",
       email: "office@demo.school",
@@ -210,19 +229,29 @@ async function main() {
     },
   });
 
-  // School admin (scoped to the demo tenant)
-  const adminHash = await bcrypt.hash("admin123", 10);
-  await prisma.user.upsert({
-    where: { schoolId_email: { schoolId: school.id, email: "admin@jessi.local" } },
-    update: {},
-    create: {
-      email: "admin@jessi.local",
-      name: "Demo Admin",
-      role: Role.ADMIN,
-      passwordHash: adminHash,
-      schoolId: school.id,
-    },
-  });
+  // ── School users ──────────────────────────────────────────────────────
+  const pw = (plain: string) => bcrypt.hash(plain, 10);
+  const [adminHash, staffHash, t1Hash, t2Hash, parentHash] = await Promise.all([
+    pw("admin123"), pw("staff123"), pw("teacher123"), pw("teacher123"), pw("parent123"),
+  ]);
+
+  const schoolUsers = [
+    { email: "admin@jessi.local",          name: "Demo Admin",    role: Role.ADMIN,   passwordHash: adminHash },
+    { email: "staff@jessi.local",          name: "Priya Menon",   role: Role.STAFF,   passwordHash: staffHash },
+    { email: "teacher.ram@jessi.local",    name: "Ramesh Kumar",  role: Role.TEACHER, passwordHash: t1Hash },
+    { email: "teacher.anita@jessi.local",  name: "Anita Rao",     role: Role.TEACHER, passwordHash: t2Hash },
+    // Parent accounts (linked by convention — not a FK, just same email as guardian)
+    { email: "rakesh.sharma@jessi.local",  name: "Rakesh Sharma", role: Role.PARENT,  passwordHash: parentHash },
+    { email: "nisha.patel@jessi.local",    name: "Nisha Patel",   role: Role.PARENT,  passwordHash: parentHash },
+  ];
+
+  for (const u of schoolUsers) {
+    await prisma.user.upsert({
+      where: { schoolId_email: { schoolId: school.id, email: u.email } },
+      update: {},
+      create: { ...u, schoolId: school.id },
+    });
+  }
 
   // ── Role permissions (global defaults) ────────────────────────────────
   for (const [role, moduleMap] of Object.entries(DEFAULT_PERMISSIONS)) {
@@ -260,13 +289,12 @@ async function main() {
     where: { schoolId_name: { schoolId: school.id, name: "Tuition" } },
   });
 
-  // ── Sample students (identity + guardians + addresses + docs + year 1) ─
+  // ── Students + all dependent records ─────────────────────────────────
   for (const s of SAMPLE_STUDENTS) {
-    const { grade, section, medium, guardians, addresses, documents, ...identity } = s;
+    const { grade, section, medium, guardians, addresses, documents, hostel, transport, tuitionAmount, concession, payment, activities, health, ...identity } = s;
+
     const student = await prisma.student.upsert({
-      where: {
-        schoolId_admissionNo: { schoolId: school.id, admissionNo: s.admissionNo },
-      },
+      where: { schoolId_admissionNo: { schoolId: school.id, admissionNo: s.admissionNo } },
       update: {},
       create: {
         ...identity,
@@ -276,32 +304,98 @@ async function main() {
         addresses: { create: addresses },
         documents: { create: documents },
         enrollments: {
-          create: {
-            schoolId: school.id,
-            academicYear: ACADEMIC_YEAR,
-            grade,
-            section,
-            medium,
-          },
+          create: { schoolId: school.id, academicYear: ACADEMIC_YEAR, grade, section, medium },
         },
       },
       include: { enrollments: true },
     });
 
-    // A sample tuition fee item on the current enrollment.
     const enrollment = student.enrollments[0];
-    if (enrollment) {
-      const existingFee = await prisma.feeItem.findFirst({
-        where: { enrollmentId: enrollment.id, feeHeadId: tuition.id },
+    if (!enrollment) continue;
+
+    // Hostel allocation
+    if (hostel) {
+      const existing = await prisma.hostelAllocation.findUnique({ where: { enrollmentId: enrollment.id } });
+      if (!existing) {
+        await prisma.hostelAllocation.create({
+          data: { schoolId: school.id, enrollmentId: enrollment.id, ...hostel },
+        });
+      }
+    }
+
+    // Transport allocation
+    if (transport) {
+      const existing = await prisma.transportAllocation.findUnique({ where: { enrollmentId: enrollment.id } });
+      if (!existing) {
+        await prisma.transportAllocation.create({
+          data: { schoolId: school.id, enrollmentId: enrollment.id, ...transport },
+        });
+      }
+    }
+
+    // Tuition fee item
+    let feeItem = await prisma.feeItem.findFirst({
+      where: { enrollmentId: enrollment.id, feeHeadId: tuition.id },
+    });
+    if (!feeItem) {
+      feeItem = await prisma.feeItem.create({
+        data: {
+          schoolId: school.id,
+          enrollmentId: enrollment.id,
+          feeHeadId: tuition.id,
+          amount: tuitionAmount,
+          description: "Annual tuition fee",
+        },
       });
-      if (!existingFee) {
-        await prisma.feeItem.create({
+    }
+
+    // Concession
+    if (concession) {
+      const existing = await prisma.concession.findFirst({ where: { feeItemId: feeItem.id } });
+      if (!existing) {
+        await prisma.concession.create({
+          data: { schoolId: school.id, feeItemId: feeItem.id, ...concession },
+        });
+      }
+    }
+
+    // Payment
+    if (payment) {
+      const existing = await prisma.payment.findFirst({
+        where: { schoolId: school.id, receiptNo: payment.receiptNo },
+      });
+      if (!existing) {
+        await prisma.payment.create({
+          data: { schoolId: school.id, feeItemId: feeItem.id, ...payment },
+        });
+      }
+    }
+
+    // Extracurricular activities
+    for (const act of activities) {
+      const existing = await prisma.extracurricularActivity.findFirst({
+        where: { enrollmentId: enrollment.id, name: act.name },
+      });
+      if (!existing) {
+        await prisma.extracurricularActivity.create({
+          data: { schoolId: school.id, enrollmentId: enrollment.id, ...act },
+        });
+      }
+    }
+
+    // Health record
+    if (health) {
+      const existing = await prisma.healthRecord.findFirst({
+        where: { studentId: student.id, academicYear: ACADEMIC_YEAR },
+      });
+      if (!existing) {
+        await prisma.healthRecord.create({
           data: {
             schoolId: school.id,
-            enrollmentId: enrollment.id,
-            feeHeadId: tuition.id,
-            amount: 45000,
-            description: "Annual tuition fee",
+            studentId: student.id,
+            academicYear: ACADEMIC_YEAR,
+            bloodGroup: student.bloodGroup ?? undefined,
+            ...health,
           },
         });
       }
@@ -309,11 +403,12 @@ async function main() {
   }
 
   console.log(
-    "Seed complete: 1 super-admin, school '%s' (slug: %s) with admin + %d students, %d fee heads, permissions seeded",
+    "Seed complete — school '%s' (%s): %d students, %d fee heads, %d school users, permissions seeded",
     school.name,
     school.slug,
     SAMPLE_STUDENTS.length,
-    FEE_HEADS.length
+    FEE_HEADS.length,
+    schoolUsers.length
   );
 }
 
