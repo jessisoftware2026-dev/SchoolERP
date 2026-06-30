@@ -18,12 +18,13 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  previewFeatures = ["postgresqlExtensions", "multiSchema"]
 }
 
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
+  schemas    = ["public"]
   extensions = [vector]
 }
 
@@ -34,6 +35,8 @@ enum Role {
   TEACHER
   PARENT
   STUDENT
+
+  @@schema("public")
 }
 
 enum Module {
@@ -49,18 +52,24 @@ enum Module {
   SETTINGS
   ROLES
   SCHOOLS
+
+  @@schema("public")
 }
 
 enum StudentStatus {
   ACTIVE
   PENDING
   INACTIVE
+
+  @@schema("public")
 }
 
 enum SchoolStatus {
   TRIAL
   ACTIVE
   SUSPENDED
+
+  @@schema("public")
 }
 
 enum Plan {
@@ -68,12 +77,16 @@ enum Plan {
   BASIC
   PRO
   ENTERPRISE
+
+  @@schema("public")
 }
 
 enum Gender {
   MALE
   FEMALE
   OTHER
+
+  @@schema("public")
 }
 
 enum BloodGroup {
@@ -86,17 +99,23 @@ enum BloodGroup {
   AB_POS
   AB_NEG
   UNKNOWN
+
+  @@schema("public")
 }
 
 enum GuardianRelation {
   FATHER
   MOTHER
   GUARDIAN
+
+  @@schema("public")
 }
 
 enum AddressType {
   CURRENT
   PERMANENT
+
+  @@schema("public")
 }
 
 enum DocumentType {
@@ -106,6 +125,8 @@ enum DocumentType {
   PASSPORT_PHOTO
   AADHAR
   OTHER
+
+  @@schema("public")
 }
 
 // Per-academic-year status of an enrollment. Drives promotion history.
@@ -116,6 +137,8 @@ enum EnrollmentStatus {
   TC_ISSUED
   GRADUATED
   INACTIVE
+
+  @@schema("public")
 }
 
 enum ConcessionType {
@@ -123,6 +146,8 @@ enum ConcessionType {
   SCHOLARSHIP // merit/means scholarship
   WAIVER // full/partial waiver
   EXCLUSION // student excluded from a fee head entirely
+
+  @@schema("public")
 }
 
 enum PaymentMode {
@@ -132,6 +157,8 @@ enum PaymentMode {
   BANK_TRANSFER
   CHEQUE
   ONLINE
+
+  @@schema("public")
 }
 
 // ── Tenant ──────────────────────────────────────────────────────────────
@@ -153,6 +180,7 @@ model School {
   feeHeads    FeeHead[]
 
   @@index([status])
+  @@schema("public")
 }
 
 model User {
@@ -170,6 +198,7 @@ model User {
   // are unique by the (null, email) pair.
   @@unique([schoolId, email])
   @@index([schoolId])
+  @@schema("public")
 }
 
 model RolePermission {
@@ -182,6 +211,7 @@ model RolePermission {
   canDelete Boolean @default(false)
 
   @@unique([role, module])
+  @@schema("public")
 }
 
 // ── Student identity (one row per child, written once at admission) ───────
@@ -231,6 +261,7 @@ model Student {
   @@index([schoolId])
   @@index([status])
   @@index([admissionYear])
+  @@schema("public")
 }
 
 model Guardian {
@@ -250,6 +281,7 @@ model Guardian {
   // One father / mother / guardian record per student.
   @@unique([studentId, relation])
   @@index([studentId])
+  @@schema("public")
 }
 
 model Address {
@@ -269,6 +301,7 @@ model Address {
   // One current + one permanent address per student.
   @@unique([studentId, type])
   @@index([studentId])
+  @@schema("public")
 }
 
 model StudentDocument {
@@ -282,6 +315,7 @@ model StudentDocument {
   uploadedAt DateTime     @default(now())
 
   @@index([studentId])
+  @@schema("public")
 }
 
 // ── Per-year enrollment (the anti-duplication core) ───────────────────────
@@ -319,6 +353,7 @@ model Enrollment {
   @@index([grade])
   @@index([academicYear])
   @@index([status])
+  @@schema("public")
 }
 
 model HostelAllocation {
@@ -334,6 +369,7 @@ model HostelAllocation {
   updatedAt    DateTime   @updatedAt
 
   @@index([schoolId])
+  @@schema("public")
 }
 
 model TransportAllocation {
@@ -350,6 +386,7 @@ model TransportAllocation {
   updatedAt    DateTime   @updatedAt
 
   @@index([schoolId])
+  @@schema("public")
 }
 
 // ── Fees ──────────────────────────────────────────────────────────────────
@@ -368,6 +405,7 @@ model FeeHead {
 
   @@unique([schoolId, name])
   @@index([schoolId])
+  @@schema("public")
 }
 
 model FeeItem {
@@ -389,6 +427,7 @@ model FeeItem {
   @@index([schoolId])
   @@index([enrollmentId])
   @@index([feeHeadId])
+  @@schema("public")
 }
 
 // Concession covers discounts, scholarships, waivers AND exclusions, applied to
@@ -408,6 +447,7 @@ model Concession {
 
   @@index([schoolId])
   @@index([feeItemId])
+  @@schema("public")
 }
 
 model Payment {
@@ -425,6 +465,7 @@ model Payment {
   @@unique([schoolId, receiptNo])
   @@index([schoolId])
   @@index([feeItemId])
+  @@schema("public")
 }
 
 model ExtracurricularActivity {
@@ -441,6 +482,7 @@ model ExtracurricularActivity {
 
   @@index([schoolId])
   @@index([enrollmentId])
+  @@schema("public")
 }
 
 // Health is lifetime data (linked to Student), optionally tagged with the year
@@ -462,4 +504,5 @@ model HealthRecord {
 
   @@index([schoolId])
   @@index([studentId])
+  @@schema("public")
 }
