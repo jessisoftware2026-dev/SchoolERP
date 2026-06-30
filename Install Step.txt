@@ -11,6 +11,8 @@ AI docs     →    http://localhost:8000/docs
 postgresql  →    http://localhost:5555/
 http://demo.192.168.1.110.nip.io:3000/
 
+New Change 30-06-2026
+
 Role            Login URL                   Email               Password
 -----------------------------------------------------------------------------
 SUPER_ADMIN     http://localhost:3000       super@jessi.local   super123
