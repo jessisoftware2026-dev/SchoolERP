@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Jessi ERP — 2-Team Work Split Plan</title>
+<style>
+  :root { --brand:#4f46e5; --brand2:#7c3aed; --ink:#0f172a; --muted:#475569; --line:#e2e8f0; --a:#4338ca; --b:#0f766e; }
+  * { box-sizing:border-box; }
+  body { font-family:"Segoe UI",Roboto,Arial,sans-serif; color:var(--ink); margin:0; line-height:1.5; }
+  .page { max-width:900px; margin:0 auto; padding:48px 56px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  h2 { font-size:18px; margin:32px 0 10px; padding-bottom:6px; border-bottom:2px solid var(--brand); }
+  h3 { font-size:14px; margin:18px 0 6px; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; }
+  p { margin:8px 0; }
+  .sub { color:var(--muted); font-size:14px; }
+  .hdr { background:linear-gradient(135deg,var(--brand),var(--brand2)); color:#fff; border-radius:12px; padding:24px 28px; margin-bottom:8px; }
+  .hdr h1 { color:#fff; }
+  .hdr .sub { color:#e0e7ff; }
+  table { width:100%; border-collapse:collapse; margin:10px 0 4px; font-size:13px; }
+  th,td { border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top; }
+  th { background:#f1f5f9; font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); }
+  .teamA { color:var(--a); font-weight:700; }
+  .teamB { color:var(--b); font-weight:700; }
+  .pill { display:inline-block; padding:1px 8px; border-radius:999px; font-size:11px; font-weight:700; }
+  .pa { background:#eef2ff; color:var(--a); }
+  .pb { background:#ecfdf5; color:var(--b); }
+  .ps { background:#f1f5f9; color:#334155; }
+  .cols { display:flex; gap:20px; }
+  .col { flex:1; border:1px solid var(--line); border-radius:10px; padding:16px 18px; }
+  .col.a { border-top:4px solid var(--a); }
+  .col.b { border-top:4px solid var(--b); }
+  ul { margin:6px 0; padding-left:20px; }
+  li { margin:3px 0; }
+  .foot { margin-top:36px; padding-top:12px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+  @media print { .page{ padding:0; max-width:none; } body{ font-size:12px; } h2{ page-break-after:avoid; } table,.col{ page-break-inside:avoid; } @page{ margin:16mm; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hdr">
+    <h1>Jessi ERP — Two-Team Work Split Plan</h1>
+    <div class="sub">Module / domain ownership · AI-Ready Multi-Tenant School ERP · © 2026 Jessi Software</div>
+  </div>
+
+  <h2>1. Approach</h2>
+  <p>Work is split <strong>by module/domain</strong>: each team owns complete <strong>vertical slices</strong> — the Next.js UI, the NestJS API module, the data model, and the related AI endpoints for the features they own. This maximises parallel delivery and minimises hand-offs. Both teams build on a <strong>shared foundation</strong> (auth, RBAC, multi-tenancy, design system) that is delivered first and maintained jointly.</p>
+  <p class="sub">Reference pattern: the existing <strong>Students</strong> module (UI → NestJS → Prisma/Postgres, tenant-scoped) is the template every other module copies.</p>
+
+  <h2>2. The Two Teams</h2>
+  <div class="cols">
+    <div class="col a">
+      <h3 class="teamA">Team A — Academics &amp; Student Experience</h3>
+      <p class="sub">Everything in the student's academic journey and parent/student-facing features.</p>
+      <p><strong>Owns 11 modules:</strong></p>
+      <ul>
+        <li>Admissions</li>
+        <li>Students</li>
+        <li>Attendance</li>
+        <li>Exams &amp; Results</li>
+        <li>Timetable</li>
+        <li>Online Learning</li>
+        <li>Library</li>
+        <li>Certificates</li>
+        <li>Health Records</li>
+        <li>Discipline</li>
+        <li>Communication (notices, SMS/email)</li>
+      </ul>
+      <p class="sub"><strong>Suggested roster:</strong> 1 tech lead, 2 full-stack (NestJS+Next), 1 frontend, 1 QA.</p>
+    </div>
+    <div class="col b">
+      <h3 class="teamB">Team B — Finance, HR &amp; Operations</h3>
+      <p class="sub">Money, people, logistics, and reporting across the school.</p>
+      <p><strong>Owns 11 modules:</strong></p>
+      <ul>
+        <li>Fees &amp; Billing</li>
+        <li>Accounts</li>
+        <li>HR &amp; Payroll</li>
+        <li>Transport</li>
+        <li>Hostel</li>
+        <li>Inventory</li>
+        <li>Front Office</li>
+        <li>Reports / MIS</li>
+        <li>Multi-Branch</li>
+        <li>Settings</li>
+        <li>Audit Logs</li>
+      </ul>
+      <p class="sub"><strong>Suggested roster:</strong> 1 tech lead, 2 full-stack (NestJS+Next), 1 frontend, 1 QA.</p>
+    </div>
+  </div>
+
+  <h2>3. Shared Foundation (Platform Squad — built first, owned jointly)</h2>
+  <p class="sub">A small shared squad (or rotating leads from both teams) owns the cross-cutting platform so the two feature teams never block each other. Most of this already exists.</p>
+  <table>
+    <tr><th>Area</th><th>Includes</th><th>Status</th></tr>
+    <tr><td>Monorepo &amp; tooling</td><td>npm workspaces, Docker Compose, CI/CD, Nginx</td><td><span class="pill ps">Done</span></td></tr>
+    <tr><td>Auth &amp; RBAC</td><td>JWT login, roles &amp; permissions, route guards</td><td><span class="pill ps">Done</span></td></tr>
+    <tr><td>Multi-tenancy</td><td>School model, schoolId scoping, subdomain tenant resolver, Schools admin</td><td><span class="pill ps">Done</span></td></tr>
+    <tr><td>Design system</td><td>Tailwind theme, shared UI (sidebar, topbar, cards, tables), dark mode</td><td><span class="pill ps">Done</span></td></tr>
+    <tr><td>AI service base</td><td>FastAPI app, health, chat/predict/embed stubs, pgvector</td><td><span class="pill ps">Done</span></td></tr>
+    <tr><td>Conventions</td><td>DTO validation, Swagger, Prisma migrations, seed, Students reference module</td><td><span class="pill ps">Done</span></td></tr>
+  </table>
+
+  <h2>4. Module Ownership Matrix</h2>
+  <table>
+    <tr><th>#</th><th>Module</th><th>Team</th><th>Phase</th><th>Key dependencies</th></tr>
+    <tr><td>1</td><td>Admissions</td><td><span class="pill pa">A</span></td><td>1</td><td>Students, Communication</td></tr>
+    <tr><td>2</td><td>Students</td><td><span class="pill pa">A</span></td><td>0 ✓</td><td>Foundation (reference module)</td></tr>
+    <tr><td>3</td><td>Attendance</td><td><span class="pill pa">A</span></td><td>1</td><td>Students, AI face-recognition</td></tr>
+    <tr><td>4</td><td>Exams &amp; Results</td><td><span class="pill pa">A</span></td><td>2</td><td>Students, AI result prediction</td></tr>
+    <tr><td>5</td><td>Timetable</td><td><span class="pill pa">A</span></td><td>2</td><td>Teachers (HR), AI optimisation</td></tr>
+    <tr><td>6</td><td>Online Learning</td><td><span class="pill pa">A</span></td><td>3</td><td>Students, Object storage</td></tr>
+    <tr><td>7</td><td>Library</td><td><span class="pill pa">A</span></td><td>3</td><td>Students</td></tr>
+    <tr><td>8</td><td>Certificates</td><td><span class="pill pa">A</span></td><td>3</td><td>Students, Exams, OCR</td></tr>
+    <tr><td>9</td><td>Health Records</td><td><span class="pill pa">A</span></td><td>3</td><td>Students</td></tr>
+    <tr><td>10</td><td>Discipline</td><td><span class="pill pa">A</span></td><td>3</td><td>Students</td></tr>
+    <tr><td>11</td><td>Communication</td><td><span class="pill pa">A</span></td><td>2</td><td>SMS/Email gateway, Push</td></tr>
+    <tr><td>12</td><td>Fees &amp; Billing</td><td><span class="pill pb">B</span></td><td>1</td><td>Students, Payment gateway, Accounts</td></tr>
+    <tr><td>13</td><td>Accounts</td><td><span class="pill pb">B</span></td><td>2</td><td>Fees, Payroll</td></tr>
+    <tr><td>14</td><td>HR &amp; Payroll</td><td><span class="pill pb">B</span></td><td>2</td><td>Users, Accounts</td></tr>
+    <tr><td>15</td><td>Transport</td><td><span class="pill pb">B</span></td><td>2</td><td>Students, GPS tracking</td></tr>
+    <tr><td>16</td><td>Hostel</td><td><span class="pill pb">B</span></td><td>3</td><td>Students, Inventory</td></tr>
+    <tr><td>17</td><td>Inventory</td><td><span class="pill pb">B</span></td><td>3</td><td>Accounts</td></tr>
+    <tr><td>18</td><td>Front Office</td><td><span class="pill pb">B</span></td><td>1</td><td>Communication, Admissions</td></tr>
+    <tr><td>19</td><td>Reports / MIS</td><td><span class="pill pb">B</span></td><td>3</td><td>ALL modules (read-only aggregation)</td></tr>
+    <tr><td>20</td><td>Multi-Branch</td><td><span class="pill pb">B</span></td><td>3</td><td>Multi-tenancy foundation</td></tr>
+    <tr><td>21</td><td>Settings</td><td><span class="pill pb">B</span></td><td>2</td><td>Foundation</td></tr>
+    <tr><td>22</td><td>Audit Logs</td><td><span class="pill pb">B</span></td><td>2</td><td>Foundation (cross-cutting)</td></tr>
+  </table>
+
+  <h2>5. AI Feature Split (shared FastAPI service)</h2>
+  <p class="sub">The AI service is one codebase; endpoints are owned by whichever team owns the consuming module. A shared ML engineer supports both.</p>
+  <table>
+    <tr><th>AI capability</th><th>Consuming module</th><th>Team</th></tr>
+    <tr><td>Face-recognition attendance</td><td>Attendance</td><td><span class="pill pa">A</span></td></tr>
+    <tr><td>Dropout / performance risk</td><td>Students, Exams</td><td><span class="pill pa">A</span></td></tr>
+    <tr><td>Result prediction</td><td>Exams &amp; Results</td><td><span class="pill pa">A</span></td></tr>
+    <tr><td>Timetable optimisation</td><td>Timetable</td><td><span class="pill pa">A</span></td></tr>
+    <tr><td>OCR document capture</td><td>Admissions, Certificates</td><td><span class="pill pa">A</span></td></tr>
+    <tr><td>Assistant chatbot</td><td>Dashboard, Front Office</td><td><span class="pill pb">B</span></td></tr>
+    <tr><td>Fee-reminder drafting</td><td>Fees</td><td><span class="pill pb">B</span></td></tr>
+    <tr><td>Semantic search (pgvector)</td><td>Reports / MIS, global</td><td><span class="pill pb">B</span></td></tr>
+  </table>
+
+  <h2>6. Phased Roadmap</h2>
+  <table>
+    <tr><th>Phase</th><th>Goal</th><th>Team A delivers</th><th>Team B delivers</th></tr>
+    <tr><td><strong>0 — Foundation</strong></td><td>Platform &amp; reference</td><td>Students module (reference)</td><td>Auth, RBAC, multi-tenancy, Settings scaffold</td></tr>
+    <tr><td><strong>1 — MVP</strong></td><td>Run a school day-to-day</td><td>Admissions, Attendance</td><td>Fees &amp; Billing, Front Office</td></tr>
+    <tr><td><strong>2 — Core ops</strong></td><td>Academics + finance/HR</td><td>Exams &amp; Results, Timetable, Communication</td><td>Accounts, HR &amp; Payroll, Transport, Audit Logs</td></tr>
+    <tr><td><strong>3 — Full platform</strong></td><td>Complete + AI</td><td>Online Learning, Library, Certificates, Health, Discipline</td><td>Hostel, Inventory, Reports/MIS, Multi-Branch</td></tr>
+  </table>
+
+  <h2>7. Cross-Team Interfaces &amp; Rules</h2>
+  <ul>
+    <li><strong>Shared Prisma schema:</strong> one schema file — coordinate migrations through the platform squad; never two people editing it at once. Each team adds its own models/relations via PR review.</li>
+    <li><strong>Shared UI library:</strong> components live in <code>apps/web/src/components</code>; changes that affect both teams go through the platform squad.</li>
+    <li><strong>API contracts:</strong> every module exposes REST under its own path, tenant-scoped via <code>@CurrentSchool()</code> + <code>TenantGuard</code>; document in Swagger.</li>
+    <li><strong>Reports/MIS reads everything:</strong> Team B's reporting depends on all modules — agree on stable read models / views early.</li>
+    <li><strong>Dependencies flow forward:</strong> Fees → Accounts; Timetable → HR (teachers); Attendance/Exams → AI. Build providers before consumers (see phase column).</li>
+  </ul>
+
+  <h2>8. Definition of Done (every module)</h2>
+  <ul>
+    <li>All data tenant-scoped by <code>schoolId</code>; queries filtered by tenant.</li>
+    <li>RBAC permissions added to the seed for each role; UI gated via <code>usePermissions</code>.</li>
+    <li>DTO validation + Swagger docs on every endpoint.</li>
+    <li>Follows the Students vertical-slice pattern (controller → service → Prisma).</li>
+    <li>Responsive UI, light/dark mode, matches the design system.</li>
+    <li>Unit tests for service logic; basic e2e for critical flows.</li>
+    <li>Seed/sample data so the module is demoable.</li>
+  </ul>
+
+  <div class="foot">
+    Jessi Software · https://jessisoftware.ijessi.com/ · +91 80988 66533 — Adapt team sizes, phases, and module priorities to your hiring and budget.
+  </div>
+
+</div>
+</body>
+</html>

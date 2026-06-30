@@ -1,0 +1,465 @@
+// Prisma schema — Jessi ERP core backend (multi-tenant / SaaS)
+// pgvector is available on the DB (pgvector/pgvector image). Enable the
+// `postgresqlExtensions` preview to manage the extension from Prisma when you
+// start storing embeddings for AI semantic search.
+//
+// MULTI-TENANCY: shared database, row-level isolation by `schoolId`.
+// Every tenant-owned row carries a schoolId and all queries are scoped by it.
+// SUPER_ADMIN users are platform operators and have schoolId = null.
+//
+// DATA MODEL — identity vs. per-year:
+//   • Student      → lifetime identity, written once at admission (personal,
+//                    guardians, addresses, documents, previous-school history).
+//   • Enrollment   → one row per student per academic year. Promotion is just a
+//                    new Enrollment linked to the previous one. ALL year-scoped
+//                    data (class/section, hostel, transport, fees, concessions,
+//                    activities) hangs off Enrollment, never off Student — so
+//                    nothing duplicates across years.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+enum Role {
+  SUPER_ADMIN // platform owner — manages schools, no single tenant
+  ADMIN
+  STAFF
+  TEACHER
+  PARENT
+  STUDENT
+}
+
+enum Module {
+  DASHBOARD
+  STUDENTS
+  FEES
+  ATTENDANCE
+  EXAMS
+  TIMETABLE
+  HR
+  TRANSPORT
+  AI
+  SETTINGS
+  ROLES
+  SCHOOLS
+}
+
+enum StudentStatus {
+  ACTIVE
+  PENDING
+  INACTIVE
+}
+
+enum SchoolStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+}
+
+enum Plan {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum BloodGroup {
+  A_POS
+  A_NEG
+  B_POS
+  B_NEG
+  O_POS
+  O_NEG
+  AB_POS
+  AB_NEG
+  UNKNOWN
+}
+
+enum GuardianRelation {
+  FATHER
+  MOTHER
+  GUARDIAN
+}
+
+enum AddressType {
+  CURRENT
+  PERMANENT
+}
+
+enum DocumentType {
+  BIRTH_CERTIFICATE
+  TRANSFER_CERTIFICATE
+  COMMUNITY_CERTIFICATE
+  PASSPORT_PHOTO
+  AADHAR
+  OTHER
+}
+
+// Per-academic-year status of an enrollment. Drives promotion history.
+enum EnrollmentStatus {
+  ACTIVE
+  PROMOTED
+  DETAINED
+  TC_ISSUED
+  GRADUATED
+  INACTIVE
+}
+
+enum ConcessionType {
+  CONCESSION // routine fee discount
+  SCHOLARSHIP // merit/means scholarship
+  WAIVER // full/partial waiver
+  EXCLUSION // student excluded from a fee head entirely
+}
+
+enum PaymentMode {
+  CASH
+  CARD
+  UPI
+  BANK_TRANSFER
+  CHEQUE
+  ONLINE
+}
+
+// ── Tenant ──────────────────────────────────────────────────────────────
+model School {
+  id        String       @id @default(cuid())
+  name      String
+  slug      String       @unique // becomes the subdomain: <slug>.jessierp.com
+  status    SchoolStatus @default(TRIAL)
+  plan      Plan         @default(FREE)
+  email     String?
+  phone     String?
+  address   String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  users       User[]
+  students    Student[]
+  enrollments Enrollment[]
+  feeHeads    FeeHead[]
+
+  @@index([status])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String
+  passwordHash String
+  name         String
+  role         Role     @default(STAFF)
+  schoolId     String? // null for SUPER_ADMIN (platform operators)
+  school       School?  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Email is unique *within* a school. Platform super-admins (schoolId null)
+  // are unique by the (null, email) pair.
+  @@unique([schoolId, email])
+  @@index([schoolId])
+}
+
+model RolePermission {
+  id        String  @id @default(cuid())
+  role      Role
+  module    Module
+  canView   Boolean @default(false)
+  canCreate Boolean @default(false)
+  canEdit   Boolean @default(false)
+  canDelete Boolean @default(false)
+
+  @@unique([role, module])
+}
+
+// ── Student identity (one row per child, written once at admission) ───────
+model Student {
+  id            String  @id @default(cuid())
+  schoolId      String
+  school        School  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  // Admission identifiers — unique per school, not globally.
+  applicationNo String? // application reference, if captured at enquiry
+  admissionNo   String // permanent admission number, assigned on admission
+  admissionYear String // session admitted in, "YYYY-YY" (e.g. 2026-27)
+
+  // Personal details
+  firstName    String
+  lastName     String
+  gender       Gender?
+  dateOfBirth  DateTime? // age is derived in the app, never stored
+  bloodGroup   BloodGroup?
+  photoUrl     String?
+  nationality  String?
+  motherTongue String?
+  aadharNo     String?
+  emisId       String? // EMIS / government student ID
+  email        String? // student's own contact, optional
+  phone        String?
+
+  // Previous-school history (captured once at admission time)
+  previousSchool        String?
+  previousBoard         String?
+  previousClass         String?
+  lastExamPercent       Float?
+  transferCertificateNo String?
+
+  admissionDate DateTime      @default(now())
+  status        StudentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  guardians     Guardian[]
+  addresses     Address[]
+  documents     StudentDocument[]
+  enrollments   Enrollment[]
+  healthRecords HealthRecord[]
+
+  @@unique([schoolId, admissionNo])
+  @@unique([schoolId, applicationNo])
+  @@index([schoolId])
+  @@index([status])
+  @@index([admissionYear])
+}
+
+model Guardian {
+  id           String           @id @default(cuid())
+  studentId    String
+  student      Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  relation     GuardianRelation
+  name         String
+  mobile       String?
+  email        String?
+  occupation   String?
+  annualIncome Decimal?
+  isPrimary    Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  // One father / mother / guardian record per student.
+  @@unique([studentId, relation])
+  @@index([studentId])
+}
+
+model Address {
+  id        String      @id @default(cuid())
+  studentId String
+  student   Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  type      AddressType
+  line      String // house / street
+  city      String?
+  district  String?
+  state     String?
+  country   String?     @default("India")
+  pincode   String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  // One current + one permanent address per student.
+  @@unique([studentId, type])
+  @@index([studentId])
+}
+
+model StudentDocument {
+  id         String       @id @default(cuid())
+  studentId  String
+  student    Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  type       DocumentType
+  number     String? // e.g. TC number, aadhar number
+  fileUrl    String?
+  verified   Boolean      @default(false)
+  uploadedAt DateTime     @default(now())
+
+  @@index([studentId])
+}
+
+// ── Per-year enrollment (the anti-duplication core) ───────────────────────
+model Enrollment {
+  id           String           @id @default(cuid())
+  schoolId     String
+  school       School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicYear String // "YYYY-YY"
+  grade        String // admission / current class
+  section      String?
+  medium       String? // medium of instruction
+  sectionGroup String?
+  rollNo       String?
+  status       EnrollmentStatus @default(ACTIVE)
+  result       String?
+  remarks      String?
+  enrolledAt   DateTime         @default(now())
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  // Promotion chain: each year links back to the prior year's enrollment.
+  promotedFromId String?     @unique
+  promotedFrom   Enrollment? @relation("Promotion", fields: [promotedFromId], references: [id])
+  promotedTo     Enrollment? @relation("Promotion")
+
+  hostel     HostelAllocation?
+  transport  TransportAllocation?
+  feeItems   FeeItem[]
+  activities ExtracurricularActivity[]
+
+  @@unique([studentId, academicYear])
+  @@index([schoolId])
+  @@index([grade])
+  @@index([academicYear])
+  @@index([status])
+}
+
+model HostelAllocation {
+  id           String     @id @default(cuid())
+  schoolId     String
+  enrollmentId String     @unique
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  blockName    String?
+  roomNo       String?
+  bedNo        String?
+  allocatedAt  DateTime   @default(now())
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([schoolId])
+}
+
+model TransportAllocation {
+  id           String     @id @default(cuid())
+  schoolId     String
+  enrollmentId String     @unique
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  routeName    String?
+  stopName     String?
+  vehicleNo    String?
+  pickupTime   String?
+  allocatedAt  DateTime   @default(now())
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([schoolId])
+}
+
+// ── Fees ──────────────────────────────────────────────────────────────────
+// FeeHead is the per-school catalog (Tuition, Hostel, Transport, Exam, Extra…).
+// FeeItem is a concrete charge a single enrollment owes under a head. "Extra
+// fees" are just FeeItems under an Extra head — no separate table needed.
+model FeeHead {
+  id        String    @id @default(cuid())
+  schoolId  String
+  school    School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  name      String
+  code      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  feeItems  FeeItem[]
+
+  @@unique([schoolId, name])
+  @@index([schoolId])
+}
+
+model FeeItem {
+  id           String     @id @default(cuid())
+  schoolId     String
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  feeHeadId    String
+  feeHead      FeeHead    @relation(fields: [feeHeadId], references: [id], onDelete: Restrict)
+  amount       Decimal
+  dueDate      DateTime?
+  description  String? // for ad-hoc / extra charges
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  concessions Concession[]
+  payments    Payment[]
+
+  @@index([schoolId])
+  @@index([enrollmentId])
+  @@index([feeHeadId])
+}
+
+// Concession covers discounts, scholarships, waivers AND exclusions, applied to
+// a specific fee item. Either a flat amount or a percent may be set.
+model Concession {
+  id         String         @id @default(cuid())
+  schoolId   String
+  feeItemId  String
+  feeItem    FeeItem        @relation(fields: [feeItemId], references: [id], onDelete: Cascade)
+  type       ConcessionType
+  amount     Decimal?
+  percent    Float?
+  reason     String?
+  approvedBy String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([schoolId])
+  @@index([feeItemId])
+}
+
+model Payment {
+  id        String      @id @default(cuid())
+  schoolId  String
+  feeItemId String
+  feeItem   FeeItem     @relation(fields: [feeItemId], references: [id], onDelete: Cascade)
+  amount    Decimal
+  mode      PaymentMode @default(CASH)
+  receiptNo String?
+  reference String? // gateway / txn reference
+  paidAt    DateTime    @default(now())
+  createdAt DateTime    @default(now())
+
+  @@unique([schoolId, receiptNo])
+  @@index([schoolId])
+  @@index([feeItemId])
+}
+
+model ExtracurricularActivity {
+  id           String     @id @default(cuid())
+  schoolId     String
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  name         String
+  category     String? // sports / arts / music / club …
+  role         String? // participant / captain …
+  achievement  String? // prize / level reached
+  remarks      String?
+  recordedAt   DateTime   @default(now())
+
+  @@index([schoolId])
+  @@index([enrollmentId])
+}
+
+// Health is lifetime data (linked to Student), optionally tagged with the year
+// the checkup happened in.
+model HealthRecord {
+  id           String      @id @default(cuid())
+  schoolId     String
+  studentId    String
+  student      Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicYear String?
+  heightCm     Float?
+  weightKg     Float?
+  bloodGroup   BloodGroup?
+  vision       String?
+  allergies    String?
+  conditions   String? // chronic conditions / notes
+  remarks      String?
+  recordedAt   DateTime    @default(now())
+
+  @@index([schoolId])
+  @@index([studentId])
+}

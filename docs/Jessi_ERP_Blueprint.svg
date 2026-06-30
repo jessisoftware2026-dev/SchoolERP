@@ -1,0 +1,197 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1480 1180" font-family="Segoe UI, Roboto, Arial, sans-serif">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#162236"/>
+    </linearGradient>
+    <linearGradient id="appcard" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e293b"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="aicard" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b1d6e"/>
+      <stop offset="1" stop-color="#1e1245"/>
+    </linearGradient>
+    <style>
+      .h1{fill:#ffffff;font-size:30px;font-weight:700}
+      .h2{fill:#93c5fd;font-size:15px;font-weight:600;letter-spacing:2px}
+      .layer{fill:#6366f1;font-size:13px;font-weight:700;letter-spacing:2px}
+      .ct{fill:#ffffff;font-size:16px;font-weight:700}
+      .cs{fill:#cbd5e1;font-size:12px}
+      .cd{fill:#1e293b;font-size:15px;font-weight:700}
+      .cds{fill:#475569;font-size:12px}
+      .chip{fill:#e0e7ff;font-size:12px;font-weight:600}
+      .flow{fill:#6366f1;font-size:13px;font-weight:700;letter-spacing:1px}
+      .small{fill:#64748b;font-size:12px}
+      .white{fill:#ffffff;font-size:13px;font-weight:600}
+      .badge{fill:#a5b4fc;font-size:11px;font-weight:700;letter-spacing:1px}
+    </style>
+  </defs>
+
+  <rect width="1480" height="1180" fill="#f1f5f9"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="1480" height="92" fill="url(#header)"/>
+  <rect x="40" y="26" width="40" height="40" rx="10" fill="url(#brand)"/>
+  <text x="60" y="52" text-anchor="middle" font-size="22">🎓</text>
+  <text x="92" y="44" class="h1">Jessi Software · School Management ERP</text>
+  <text x="92" y="70" fill="#94a3b8" font-size="15">AI-Ready, Multi-Tenant SaaS Platform — Full System Blueprint</text>
+  <text x="1440" y="40" text-anchor="end" class="h2">SYSTEM ARCHITECTURE</text>
+  <text x="1440" y="64" text-anchor="end" fill="#64748b" font-size="12">Target Vision · © 2026</text>
+
+  <!-- ===================== LEFT MAIN COLUMN ===================== -->
+
+  <!-- Layer 1: Client -->
+  <text x="40" y="126" class="layer">1 · CLIENT / PRESENTATION LAYER</text>
+  <g>
+    <rect x="40" y="136" width="320" height="92" rx="12" fill="url(#brand)"/>
+    <text x="60" y="166" class="ct">🌐 Web Application</text>
+    <text x="60" y="190" class="cs">React + Next.js · TypeScript · Tailwind</text>
+    <text x="60" y="208" class="cs">Admin / staff / teacher dashboards</text>
+
+    <rect x="372" y="136" width="320" height="92" rx="12" fill="url(#brand)"/>
+    <text x="392" y="166" class="ct">📱 Mobile App</text>
+    <text x="392" y="190" class="cs">React Native (Android / iOS)</text>
+    <text x="392" y="208" class="cs">Parent &amp; student app · real-time alerts</text>
+
+    <rect x="704" y="136" width="320" height="92" rx="12" fill="url(#brand)"/>
+    <text x="724" y="166" class="ct">🖥 Platform Console</text>
+    <text x="724" y="190" class="cs">Super-admin · multi-school management</text>
+    <text x="724" y="208" class="cs">MIS &amp; cross-tenant analytics</text>
+  </g>
+  <text x="532" y="252" text-anchor="middle" class="flow">▲ HTTPS · REST · WebSocket ▼ &#160;&#160; tenant by subdomain: school.jessierp.com</text>
+
+  <!-- Layer 2: Gateway -->
+  <text x="40" y="282" class="layer">2 · API GATEWAY &amp; SECURITY</text>
+  <rect x="40" y="292" width="984" height="74" rx="12" fill="#0f766e"/>
+  <text x="60" y="322" class="ct">🔐 API Gateway · Authentication · Multi-Tenant Isolation</text>
+  <text x="60" y="348" class="cs">JWT auth (schoolId scoped) · RBAC roles &amp; permissions · tenant resolver · rate limiting · SSL/TLS · audit logging</text>
+
+  <text x="532" y="390" text-anchor="middle" class="flow">▲ internal service calls ▼</text>
+
+  <!-- Layer 3: Application -->
+  <text x="40" y="420" class="layer">3 · APPLICATION / BUSINESS LOGIC LAYER</text>
+
+  <!-- Core ERP card with 22 modules -->
+  <rect x="40" y="430" width="610" height="300" rx="12" fill="url(#appcard)"/>
+  <text x="62" y="460" class="ct">⚙️ Core ERP Backend</text>
+  <text x="62" y="482" class="cs">NestJS / Node.js · Prisma — 22 modules, tenant-scoped</text>
+
+  <!-- module chips: 3 columns x ~8 rows -->
+  <g>
+    <!-- col 1 -->
+    <text x="62" y="516" class="chip">• Admissions</text>
+    <text x="62" y="540" class="chip">• Students</text>
+    <text x="62" y="564" class="chip">• Fees &amp; Billing</text>
+    <text x="62" y="588" class="chip">• Attendance</text>
+    <text x="62" y="612" class="chip">• Exams &amp; Results</text>
+    <text x="62" y="636" class="chip">• Timetable</text>
+    <text x="62" y="660" class="chip">• HR &amp; Payroll</text>
+    <text x="62" y="684" class="chip">• Accounts</text>
+    <!-- col 2 -->
+    <text x="270" y="516" class="chip">• Transport</text>
+    <text x="270" y="540" class="chip">• Library</text>
+    <text x="270" y="564" class="chip">• Hostel</text>
+    <text x="270" y="588" class="chip">• Inventory</text>
+    <text x="270" y="612" class="chip">• Communication</text>
+    <text x="270" y="636" class="chip">• Front Office</text>
+    <text x="270" y="660" class="chip">• Certificates</text>
+    <text x="270" y="684" class="chip">• Health Records</text>
+    <!-- col 3 -->
+    <text x="470" y="516" class="chip">• Discipline</text>
+    <text x="470" y="540" class="chip">• Online Learning</text>
+    <text x="470" y="564" class="chip">• Reports / MIS</text>
+    <text x="470" y="588" class="chip">• Multi-Branch</text>
+    <text x="470" y="612" class="chip">• Roles &amp; Users</text>
+    <text x="470" y="636" class="chip">• Settings</text>
+    <text x="470" y="660" class="chip">• Audit Logs</text>
+    <text x="470" y="684" class="chip">• Schools (tenant)</text>
+  </g>
+  <text x="62" y="714" class="cds" fill="#94a3b8">Fast &amp; stable core — every record carries schoolId for row-level isolation.</text>
+
+  <!-- AI microservice card -->
+  <rect x="666" y="430" width="358" height="300" rx="12" fill="url(#aicard)"/>
+  <text x="688" y="460" class="ct">🤖 AI Microservice</text>
+  <text x="688" y="482" class="cs">Python · FastAPI — isolated, scales independently</text>
+  <g>
+    <text x="688" y="520" class="chip">• Assistant chatbot (LLM)</text>
+    <text x="688" y="548" class="chip">• Dropout / performance risk</text>
+    <text x="688" y="576" class="chip">• Result prediction</text>
+    <text x="688" y="604" class="chip">• OCR document capture</text>
+    <text x="688" y="632" class="chip">• Face-recognition attendance</text>
+    <text x="688" y="660" class="chip">• Timetable optimisation</text>
+    <text x="688" y="688" class="chip">• Semantic search (pgvector)</text>
+  </g>
+  <text x="688" y="716" class="cds" fill="#c4b5fd">Called over an internal API — keeps the ERP fast.</text>
+
+  <text x="532" y="754" text-anchor="middle" class="flow">▲ data access · ORM / cache ▼</text>
+
+  <!-- Layer 4: Data -->
+  <text x="40" y="784" class="layer">4 · DATA LAYER</text>
+  <g>
+    <rect x="40" y="794" width="320" height="96" rx="12" fill="#1d4ed8"/>
+    <text x="60" y="824" class="ct">🗄 PostgreSQL</text>
+    <text x="60" y="848" class="cs">Primary DB · row-level multi-tenancy</text>
+    <text x="60" y="868" class="cs">+ pgvector for AI embeddings</text>
+
+    <rect x="372" y="794" width="320" height="96" rx="12" fill="#b91c1c"/>
+    <text x="392" y="824" class="ct">⚡ Redis</text>
+    <text x="392" y="848" class="cs">Caching · sessions</text>
+    <text x="392" y="868" class="cs">Real-time notification queue</text>
+
+    <rect x="704" y="794" width="320" height="96" rx="12" fill="#0e7490"/>
+    <text x="724" y="824" class="ct">📦 Object Storage</text>
+    <text x="724" y="848" class="cs">Documents · photos · certificates</text>
+    <text x="724" y="868" class="cs">Backups (S3-compatible)</text>
+  </g>
+
+  <!-- ===================== RIGHT COLUMN ===================== -->
+  <!-- External integrations -->
+  <text x="1056" y="126" class="layer">EXTERNAL INTEGRATIONS</text>
+  <rect x="1056" y="136" width="384" height="288" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <g>
+    <text x="1076" y="172" class="cd">💳 Payment Gateway</text>
+    <text x="1076" y="192" class="cds">Online fee collection</text>
+    <text x="1076" y="224" class="cd">✉️ SMS &amp; Email Gateway</text>
+    <text x="1076" y="244" class="cds">Alerts, OTP, notices</text>
+    <text x="1076" y="276" class="cd">🔆 AI / LLM Model APIs</text>
+    <text x="1076" y="296" class="cds">Chatbot &amp; generation</text>
+    <text x="1076" y="328" class="cd">👆 Biometric &amp; RFID</text>
+    <text x="1076" y="348" class="cds">Devices for attendance</text>
+    <text x="1076" y="380" class="cd">📍 GPS / Transport Tracking</text>
+    <text x="1076" y="400" class="cds">Live bus location · 🔔 push</text>
+  </g>
+
+  <!-- Cloud infra -->
+  <text x="1056" y="460" class="layer">CLOUD INFRASTRUCTURE &amp; DEVOPS</text>
+  <rect x="1056" y="470" width="384" height="260" rx="12" fill="#0b1220"/>
+  <g>
+    <text x="1076" y="506" class="white">☁️ AWS / GCP / Azure</text>
+    <text x="1076" y="528" class="cs">Managed cloud hosting</text>
+    <text x="1076" y="558" class="white">🧩 Managed DB &amp; auto-backups</text>
+    <text x="1076" y="588" class="white">📈 Auto-scaling &amp; load balancer</text>
+    <text x="1076" y="618" class="white">🖥 GPU instances for AI inference</text>
+    <text x="1076" y="648" class="white">🛡 Firewall · DDoS · daily backups</text>
+    <text x="1076" y="690" class="white">🐳 Docker · CI/CD · Nginx</text>
+    <text x="1076" y="712" class="cs">Containerised, repeatable deploys</text>
+  </g>
+
+  <!-- Multi-tenancy callout -->
+  <rect x="1056" y="794" width="384" height="96" rx="12" fill="url(#brand)"/>
+  <text x="1076" y="824" class="white" font-size="15">🏫 Multi-Tenant SaaS</text>
+  <text x="1076" y="848" class="cs">Shared DB · row-level isolation by schoolId.</text>
+  <text x="1076" y="868" class="cs">Each school = a subdomain tenant; SUPER_ADMIN</text>
+  <text x="1076" y="886" class="cs">onboards &amp; manages every school.</text>
+
+  <!-- Footer principle -->
+  <rect x="40" y="924" width="1400" height="64" rx="12" fill="#e2e8f0"/>
+  <text x="60" y="952" class="cd" font-size="14">Key design principle</text>
+  <text x="60" y="974" class="cds" font-size="13">The Core ERP backend and the Python AI service are kept separate — the ERP stays fast and stable, while the AI service scales and evolves independently, reached over an internal API. Tenants are isolated at the data layer by schoolId.</text>
+
+  <text x="40" y="1018" class="small">Jessi Software · https://jessisoftware.ijessi.com/ · +91 80988 66533</text>
+  <text x="1440" y="1018" text-anchor="end" class="small">Path 1 · Future-Ready / AI-First — React+Next.js · NestJS · FastAPI · PostgreSQL+Redis · React Native · major cloud</text>
+</svg>

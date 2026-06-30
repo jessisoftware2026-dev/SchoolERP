@@ -1,0 +1,11 @@
+fastapi==0.111.1
+uvicorn[standard]==0.30.3
+pydantic==2.8.2
+pydantic-settings==2.3.4
+httpx==0.27.0
+# AI/ML stack (uncomment as you implement features)
+# openai==1.37.1
+# numpy==2.0.1
+# scikit-learn==1.5.1
+# pgvector==0.3.2
+# psycopg[binary]==3.2.1

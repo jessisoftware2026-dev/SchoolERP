@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-Command mysql,mysqldump,psql,sqlcmd,mongo,sqlite3 -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Service | Where-Object { $_.Name -match 'mysql|maria|postgres|mssql|mongo' } | Select-Object Name, Status, DisplayName)"
+    ]
+  }
+}

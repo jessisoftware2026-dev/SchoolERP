@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 222 28% 98%;
+  --foreground: 226 52% 9%;
+  --card: 0 0% 100%;
+  --muted: 222 20% 95%;
+  --muted-foreground: 222 14% 43%;
+  --border: 222 18% 89%;
+  --primary: 242 87% 62%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 187 96% 42%;
+  --ring: 242 87% 62% / 0.22;
+}
+
+.dark {
+  --background: 228 82% 4%;
+  --foreground: 214 34% 92%;
+  --card: 226 64% 6%;
+  --muted: 228 58% 9%;
+  --muted-foreground: 218 18% 52%;
+  --border: 222 42% 13%;
+  --primary: 242 87% 68%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 187 96% 52%;
+  --ring: 242 87% 68% / 0.22;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(242 87% 68% / 0); }
+  50%       { box-shadow: 0 0 16px 4px hsl(242 87% 68% / 0.25); }
+}
+
+.animate-fade-up    { animation: fade-up 0.7s ease-out forwards; }
+.animate-gradient   { background-size: 200% auto; animation: gradient-shift 5s ease infinite; }
+.animate-float      { animation: float 4s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+
+.text-gradient-primary {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(187 96% 52%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
